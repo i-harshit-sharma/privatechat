@@ -34,6 +34,7 @@
   }
   const randomSecret = () =>
     Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+  const newMid = () => randomSecret().slice(0, 12);
   const fmt = (id) => `${id.slice(0, 4)}-${id.slice(4)}`;
   const norm = (s) => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const clock = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -67,6 +68,15 @@
   };
   const peerStatus = (p) => PEER_STATUS[p.state] || (p.away ? 'Reconnecting…' : 'Connected');
   const peerStatusClass = (p) => (p.state === 'active' ? (p.away ? 'warn' : 'ok') : '');
+
+  // Status of my own messages: awaiting -> received -> seen.
+  const svg = (w, paths) =>
+    `<svg viewBox="0 0 ${w} 16" width="${w}" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+  const TICKS = {
+    awaiting: { label: 'Awaiting delivery', svg: svg(16, '<circle cx="8" cy="8" r="6"/><path d="M8 4.8V8l2.3 1.4"/>') },
+    received: { label: 'Received', svg: svg(16, '<path d="M2.5 8.5l3.2 3.2 6.8-6.9"/>') },
+    seen: { label: 'Seen', svg: svg(22, '<path d="M1.5 8.5l3.2 3.2 6.8-6.9"/><path d="M9.6 10.4l1.3 1.3 6.8-6.9"/>') },
+  };
 
   function renderPeers() {
     const list = $('peer-list');
@@ -145,8 +155,16 @@
       } else {
         div.append(`${m.name} (${fmtSize(m.size)}) could not be received`);
       }
-      const state = m.status === 'sending' ? ' · Sending…' : m.status === 'failed' ? ' · Not delivered' : '';
-      div.append(el('span', 'meta', m.time + state));
+      const meta = el('span', 'meta', m.time + (m.status === 'failed' ? ' · Not delivered' : ''));
+      if (m.mine && TICKS[m.status]) {
+        const tick = el('span', `tick ${m.status}`);
+        tick.innerHTML = TICKS[m.status].svg; // fixed markup defined above, never user input
+        tick.title = TICKS[m.status].label;
+        tick.setAttribute('role', 'img');
+        tick.setAttribute('aria-label', TICKS[m.status].label);
+        meta.append(tick);
+      }
+      div.append(meta);
       box.append(div);
     }
     box.scrollTop = box.scrollHeight;
@@ -174,6 +192,7 @@
     p.unread = 0;
     document.body.classList.add('show-chat');
     render();
+    receipts(p);
     if (p.state === 'active') $('text').focus();
   }
 
@@ -250,11 +269,14 @@
     if (!p || p.state !== 'active' || !text) return;
     $('text').value = '';
     $('text').style.height = '';
-    const m = { kind: 'text', mine: true, text, status: 'sending' };
+    const m = { kind: 'text', mine: true, text, mid: newMid(), status: 'awaiting' };
     addMessage(p, m);
-    const r = await send(p.id, 'msg', { text });
-    m.status = r.ok ? '' : 'failed';
-    render();
+    const r = await send(p.id, 'msg', { text, mid: m.mid });
+    // On success the status stays as it is: a receipt may already have arrived.
+    if (!r.ok) {
+      m.status = 'failed';
+      render();
+    }
   }
 
   async function sendFile(file) {
@@ -269,7 +291,8 @@
       size: file.size,
       url: URL.createObjectURL(file),
       image: PREVIEW.has(file.type),
-      status: 'sending',
+      mid: newMid(),
+      status: 'awaiting',
     };
     addMessage(p, m);
     try {
@@ -282,14 +305,36 @@
           'x-to': p.id,
           'x-file-name': encodeURIComponent(file.name),
           'x-file-type': file.type,
+          'x-mid': m.mid,
         },
         body: file,
       });
-      m.status = res.ok ? '' : 'failed';
+      if (!res.ok) m.status = 'failed';
     } catch {
       m.status = 'failed';
     }
     render();
+  }
+
+  // Tell the sender which of their messages reached this browser (ack) and
+  // which were actually on screen (seen: this chat open and the tab visible).
+  function receipts(p) {
+    if (p.state !== 'active') return;
+    const viewing = selected === p.id && !document.hidden;
+    const seen = [];
+    const ack = [];
+    for (const m of p.messages) {
+      if (m.mine || !m.mid || m.receipt === 'seen') continue;
+      if (viewing) {
+        seen.push(m.mid);
+        m.receipt = 'seen';
+      } else if (!m.receipt) {
+        ack.push(m.mid);
+        m.receipt = 'ack';
+      }
+    }
+    if (seen.length) send(p.id, 'seen', { mids: seen.slice(-500) });
+    if (ack.length) send(p.id, 'ack', { mids: ack.slice(-500) });
   }
 
   // The server deletes the file as we read it, so fetch it straight away.
@@ -300,9 +345,11 @@
       if (res.ok) {
         const blob = new Blob([await res.arrayBuffer()], { type: m.image ? ev.mime : 'application/octet-stream' });
         m.url = URL.createObjectURL(blob);
+        m.mid = ev.mid; // only acknowledge files that actually arrived
       }
     } catch {}
     addMessage(p, m);
+    receipts(p);
   }
 
   function handle(ev) {
@@ -340,7 +387,20 @@
         else if (p && p.state !== 'ended') drop(p.id);
         break;
       case 'msg':
-        if (p && p.state === 'active') addMessage(p, { kind: 'text', mine: false, text: String(ev.text) });
+        if (p && p.state === 'active') {
+          addMessage(p, { kind: 'text', mine: false, text: String(ev.text), mid: ev.mid });
+          receipts(p);
+        }
+        break;
+      case 'ack':
+      case 'seen':
+        if (p && Array.isArray(ev.mids)) {
+          const next = ev.type === 'seen' ? 'seen' : 'received';
+          for (const m of p.messages) {
+            if (m.mine && ev.mids.includes(m.mid) && m.status !== 'seen' && m.status !== 'failed') m.status = next;
+          }
+          render();
+        }
         break;
       case 'file':
         if (p && p.state === 'active') receiveFile(p, ev);
@@ -457,6 +517,39 @@
     $('text').style.height = 'auto';
     $('text').style.height = `${$('text').scrollHeight + 2}px`;
   });
+  // Emoji picker: inserts at the cursor and stays open until dismissed.
+  const EMOJIS = [
+    ...'😀😃😄😁😆😅😂🤣😊🙂😉😍😘😋😜🤪🤔🤨😐😏😴😎🥳🤗🤭🤫😇🥹😢😭😤😡🤯😱😳🥺😬🙄😷🤒🤢🥶🥵💀👻🤖💩',
+    ...'👍👎👌🤞🤝👏🙌🙏💪👋🤙👀🫶🫡',
+    '❤️', ...'🧡💛💚💙💜🖤💔💯🔥✨⭐🎉🎁🎂🍕🍔☕🍺⚽🎮🎵📷💡📌✅❌❓❗⏰🚀🌍🌙',
+    '☀️', ...'🌧🐶🐱',
+  ];
+  for (const e of EMOJIS) {
+    const b = el('button', '', e);
+    b.type = 'button';
+    b.setAttribute('aria-label', e);
+    $('emoji-panel').append(b);
+  }
+  function toggleEmoji(open) {
+    $('emoji-panel').hidden = !open;
+    $('emoji-btn').setAttribute('aria-expanded', String(open));
+  }
+  $('emoji-btn').addEventListener('click', () => toggleEmoji($('emoji-panel').hidden));
+  $('emoji-panel').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    const t = $('text');
+    if (t.value.length + e.target.textContent.length > t.maxLength) return;
+    t.setRangeText(e.target.textContent, t.selectionStart, t.selectionEnd, 'end');
+    t.dispatchEvent(new Event('input'));
+    t.focus();
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#emoji-panel, #emoji-btn')) toggleEmoji(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') toggleEmoji(false);
+  });
+
   $('attach').addEventListener('click', () => $('file-input').click());
   $('file-input').addEventListener('change', () => {
     sendFile($('file-input').files[0]);
@@ -501,10 +594,12 @@
 
   document.addEventListener('visibilitychange', () => {
     const p = peers.get(selected);
-    if (!document.hidden && p && p.unread) {
+    if (document.hidden || !p) return;
+    if (p.unread) {
       p.unread = 0;
       renderPeers();
     }
+    receipts(p);
   });
 
   // Closing or refreshing ends the session immediately for everyone we talk to.

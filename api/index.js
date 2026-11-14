@@ -19,6 +19,7 @@ const MAX_PEERS = 20;
 const ID_RE = /^[A-HJKMNP-Z2-9]{8}$/;
 const SECRET_RE = /^[a-f0-9]{32}$/;
 const FILE_ID_RE = /^[a-f0-9-]{36}$/;
+const MID_RE = /^[a-f0-9]{12}$/; // client-generated message id, used for receipts
 
 const userKey = (id) => `u:${id}`;
 const inboxKey = (id) => `in:${id}`;
@@ -85,7 +86,7 @@ app.post('/api/poll', wrap(async (req, res) => {
 
 // request / accept / reject / msg / leave
 app.post('/api/send', wrap(async (req, res) => {
-  const { id, secret, to, type, text } = req.body || {};
+  const { id, secret, to, type, text, mid, mids } = req.body || {};
   if (!validCreds(id, secret) || !ID_RE.test(to || '') || to === id) {
     return res.status(400).json({ error: 'bad request' });
   }
@@ -113,12 +114,20 @@ app.post('/api/send', wrap(async (req, res) => {
       return res.status(400).json({ error: 'bad request' });
     }
     if (!(await store.exists(pairKey(id, to)))) return res.status(403).json({ error: 'not connected' });
+  } else if (type === 'ack' || type === 'seen') {
+    // Delivery receipts: the recipient's browser got (ack) or showed (seen) these messages.
+    if (!Array.isArray(mids) || !mids.length || mids.length > 500 || !mids.every((m) => MID_RE.test(m))) {
+      return res.status(400).json({ error: 'bad request' });
+    }
+    if (!(await store.exists(pairKey(id, to)))) return res.status(403).json({ error: 'not connected' });
   } else {
     return res.status(400).json({ error: 'bad request' });
   }
 
   const event = { type, from: id };
   if (type === 'msg') event.text = text;
+  if (type === 'msg' && MID_RE.test(mid)) event.mid = mid;
+  if (type === 'ack' || type === 'seen') event.mids = mids;
   if (type === 'request' || type === 'accept') event.name = name;
   await push(to, event);
   res.json({ ok: true });
@@ -152,7 +161,9 @@ app.post(
 
     const fileId = crypto.randomUUID();
     await store.set(fileKey(to, fileId), req.body.toString('base64'), { ex: FILE_TTL });
-    await push(to, { type: 'file', from: id, fileId, name, mime, size: req.body.length });
+    const event = { type: 'file', from: id, fileId, name, mime, size: req.body.length };
+    if (MID_RE.test(req.get('x-mid') || '')) event.mid = req.get('x-mid');
+    await push(to, event);
     res.json({ ok: true });
   })
 );

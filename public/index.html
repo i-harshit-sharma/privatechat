@@ -4,82 +4,161 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="referrer" content="no-referrer">
-  <title>PrivateChat</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="PrivateChat is a one-to-one chat with no accounts and no history. Share an ID, chat, close the tab and it's gone.">
+  <title>PrivateChat - one-to-one chat with no accounts and no history</title>
+  <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="side">
-      <header class="brand">
-        <h1>PrivateChat</h1>
-        <span id="status" class="status">Connecting…</span>
-      </header>
+  <header class="nav">
+    <a class="logo" href="/" aria-label="PrivateChat home">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 5.5A3.5 3.5 0 0 1 7.500 2h9A3.5 3.5 0 0 1 20 5.5v7a3.500 3.500 0 0 1-3.500 3.500H11l-4.600 4.100A.850.850 0 0 1 5 19.460V16A3.500 3.500 0 0 1 4 12.500z" fill="currentColor"/></svg>
+      PrivateChat
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-dark btn-small" href="/chat/">Open chat</a>
+  </header>
 
-      <section class="me">
-        <span class="label">Your ID</span>
-        <div class="id-row">
-          <code id="my-id">····-····</code>
-          <button id="copy" type="button" class="ghost" disabled>Copy</button>
+  <main>
+    <section class="hero">
+      <h1>
+        Share an
+        <svg class="tile" viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="9" width="42" height="30" rx="7" fill="#ffd9b8" stroke="#1a1a1a" stroke-width="2.500"/><path d="M19 17l-2 14M29 17l-2 14M14 21h19M13 27h19" stroke="#1a1a1a" stroke-width="2.500" stroke-linecap="round" fill="none"/></svg>
+        ID, chat
+        <svg class="tile tilt-r" viewBox="0 0 48 48" aria-hidden="true"><path d="M6 13a7 7 0 0 1 7-7h22a7 7 0 0 1 7 7v14a7 7 0 0 1-7 7H23l-9 8v-8h-1a7 7 0 0 1-7-7z" fill="#d6ccff" stroke="#1a1a1a" stroke-width="2.500" stroke-linejoin="round"/><circle cx="16" cy="20" r="2.300" fill="#1a1a1a"/><circle cx="24" cy="20" r="2.300" fill="#1a1a1a"/><circle cx="32" cy="20" r="2.300" fill="#1a1a1a"/></svg>
+        freely, close
+        <svg class="tile tilt-l" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="5" width="38" height="38" rx="9" fill="#b9ecd0" stroke="#1a1a1a" stroke-width="2.500"/><path d="M17 17l14 14M31 17L17 31" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/></svg>
+        the tab and it's gone.
+      </h1>
+      <div class="hero-row">
+        <p class="lead">PrivateChat is a one-to-one chat with no accounts and no history. Messages pass through and are deleted the moment they are delivered.</p>
+        <div class="hero-cta">
+          <a class="btn btn-dark" href="/chat/">Start a chat</a>
+          <a class="btn btn-soft" href="#how">See how it works</a>
         </div>
-        <p class="hint">Share this ID with someone. It changes every time you open or refresh this page.</p>
-      </section>
-
-      <section>
-        <label class="label" for="name-input">Your name</label>
-        <input id="name-input" maxlength="24" placeholder="Required to start a chat" autocomplete="off" spellcheck="false">
-        <p class="hint">Shown to people you chat with. Remembered in this browser only.</p>
-      </section>
-
-      <form id="connect-form" class="connect">
-        <label class="label" for="peer-input">Connect to an ID</label>
-        <div class="id-row">
-          <input id="peer-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false">
-          <button type="submit">Connect</button>
-        </div>
-        <p id="notice" class="notice" role="status"></p>
-      </form>
-
-      <ul id="peer-list" class="peers"></ul>
-    </aside>
-
-    <main class="chat">
-      <div id="empty" class="empty">
-        <p>No chat open.</p>
-        <p class="hint">Both people must have this page open. Nothing is saved: messages exist only in your two browsers and vanish when the tab closes.</p>
       </div>
+    </section>
 
-      <section id="conv" class="conv" hidden>
-        <header class="conv-head">
-          <button id="back" type="button" class="ghost back" aria-label="Back to chats">←</button>
-          <div class="conv-title">
-            <span><strong id="conv-name"></strong> <code id="conv-id"></code></span>
-            <span id="conv-status" class="status"></span>
+    <section class="demo-wrap" aria-label="Interactive demo">
+      <p class="try"><span class="pill">TRY IT</span> Type a message as Alice. This demo runs only in your browser, nothing is sent anywhere.</p>
+      <div class="window">
+        <div class="window-bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="window-title">PrivateChat</span>
+          <button id="demo-close" type="button" class="window-btn">Close the tab</button>
+        </div>
+        <div class="demo">
+          <div class="pane">
+            <div class="pane-head"><strong>You (Alice)</strong><code>K7QF-2MXD</code><span class="live">Connected</span></div>
+            <div id="demo-a" class="msgs" aria-live="polite"></div>
+            <form id="demo-form" class="demo-form">
+              <input id="demo-input" maxlength="120" placeholder="Say something to Bob" autocomplete="off" aria-label="Demo message">
+              <button class="btn btn-dark btn-small" type="submit">Send</button>
+            </form>
           </div>
-          <button id="leave" type="button" class="ghost danger">Leave</button>
-        </header>
+          <div class="pane">
+            <div class="pane-head"><strong>Bob</strong><code>P3WN-8HTA</code><span class="live">Connected</span></div>
+            <div id="demo-b" class="msgs"></div>
+            <div class="demo-form ghosted" aria-hidden="true"><span>Bob's screen</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <div id="messages" class="messages" aria-live="polite"></div>
+    <section id="how" class="section">
+      <p class="eyebrow">HOW IT WORKS</p>
+      <h2>Connected in three steps</h2>
+      <p class="sub">No sign-up and nothing to install. Both of you just need the page open.</p>
+      <div class="steps">
+        <article class="step">
+          <span class="num">1</span>
+          <h3>Open the page</h3>
+          <p>You get a fresh ID. It changes every time you open or refresh the page.</p>
+          <div class="mini">
+            <span class="mini-label">YOUR ID</span>
+            <div class="mini-row"><code class="big-id">K7QF-2MXD</code><span class="chip">Copy</span></div>
+          </div>
+        </article>
+        <article class="step">
+          <span class="num">2</span>
+          <h3>Share it, then accept</h3>
+          <p>Send your ID any way you like. When they enter it, you choose whether to accept.</p>
+          <div class="mini">
+            <div class="mini-row"><div><strong>Bob</strong><br><code>P3WN-8HTA</code> wants to chat</div></div>
+            <div class="mini-row"><span class="chip chip-dark">Accept</span><span class="chip">Reject</span></div>
+          </div>
+        </article>
+        <article class="step">
+          <span class="num">3</span>
+          <h3>Chat, then close</h3>
+          <p>Talk for as long as you both stay. Close the tab and the conversation is gone.</p>
+          <div class="mini mini-chat">
+            <span class="b them">Is this saved anywhere?</span>
+            <span class="b me">Nope. Only on our screens.</span>
+          </div>
+        </article>
+      </div>
+    </section>
 
-        <form id="composer" class="composer">
-          <input id="file-input" type="file" hidden>
-          <button id="attach" type="button" class="ghost" aria-label="Send a file (max 3 MB)" title="Send a file (max 3 MB)">+</button>
-          <textarea id="text" rows="1" maxlength="4000" placeholder="Message"></textarea>
-          <button type="submit">Send</button>
-        </form>
-      </section>
-    </main>
-  </div>
+    <section id="features" class="section">
+      <p class="eyebrow">FEATURES</p>
+      <h2>Small on purpose</h2>
+      <p class="sub">Everything you need for a quick private conversation, and nothing that keeps a record.</p>
+      <div class="grid">
+        <div class="feat"><span class="key">ID</span><div><h3>No sign-up</h3><p>No email, phone number or password. An ID is generated in your browser.</p></div></div>
+        <div class="feat"><span class="key">✓</span><div><h3>You approve every chat</h3><p>Knowing your ID is not enough. Nobody can message you until you accept.</p></div></div>
+        <div class="feat"><span class="key">+</span><div><h3>Send files</h3><p>Any file up to 3 MB. It is handed over once and then removed from the relay.</p></div></div>
+        <div class="feat"><span class="key">▣</span><div><h3>Image preview</h3><p>Pictures show in the chat. Click one to view it full size or download it.</p></div></div>
+        <div class="feat"><span class="key">✓✓</span><div><h3>Delivery status</h3><p>See whether each message is awaiting delivery, received or seen.</p></div></div>
+        <div class="feat"><span class="key">2+</span><div><h3>Several chats at once</h3><p>Talk to more than one person, each in a separate one-to-one conversation.</p></div></div>
+        <div class="feat"><span class="key">☺</span><div><h3>Emojis</h3><p>A built-in picker, so it works the same on every device.</p></div></div>
+        <div class="feat"><span class="key">◐</span><div><h3>Light and dark</h3><p>Follows your system theme, on desktop and on your phone.</p></div></div>
+      </div>
+    </section>
 
-  <dialog id="viewer" class="viewer" aria-label="Image preview">
-    <img id="viewer-img" alt="">
-    <div class="viewer-bar">
-      <span id="viewer-name"></span>
-      <a id="viewer-dl" class="button">Download</a>
-      <button id="viewer-close" type="button" class="ghost">Close</button>
-    </div>
-  </dialog>
+    <section id="privacy" class="section">
+      <p class="eyebrow">PRIVACY</p>
+      <h2>What the server holds, and for how long</h2>
+      <p class="sub">The server is a relay. It passes things along and then forgets them.</p>
+      <div class="ledger">
+        <div class="row"><span class="what">A message</span><span class="how">Held until the other browser collects it, usually about a second. Deleted on pickup, or after 60 seconds if never collected.</span></div>
+        <div class="row"><span class="what">A file</span><span class="how">Same as a message: handed over once, then deleted. Gone after 60 seconds if never collected.</span></div>
+        <div class="row"><span class="what">Your ID</span><span class="how">Forgotten when you close the tab, or within 30 seconds if your connection drops.</span></div>
+        <div class="row"><span class="what">Your name</span><span class="how">Kept in your own browser. Passed to the other person when a chat starts.</span></div>
+        <div class="row"><span class="what">Chat history</span><span class="how">Never stored. It exists only on the two screens and disappears with the tab.</span></div>
+        <div class="row"><span class="what">Accounts</span><span class="how">There are none. No email, no password, no profile.</span></div>
+      </div>
+      <p class="note"><strong>One thing to know:</strong> messages travel over HTTPS but are not end-to-end encrypted. The relay could read a message during the moment it holds it, so do not treat PrivateChat as a tool for secrets that need stronger protection.</p>
+    </section>
 
-  <script src="app.js"></script>
+    <section id="faq" class="section">
+      <p class="eyebrow">FAQ</p>
+      <h2>Questions</h2>
+      <div class="faq">
+        <details><summary>Do I need an account?</summary><p>No. Opening the chat page gives you an ID. You type a display name, share the ID, and that is all.</p></details>
+        <details><summary>What happens if I refresh or close the page?</summary><p>Your chats end and your messages are gone. When you come back you get a new ID and start again.</p></details>
+        <details><summary>Can I message someone who is offline?</summary><p>No. Both people must have the page open. If an ID is not online, the request is refused.</p></details>
+        <details><summary>Can I get an old conversation back?</summary><p>No. Nothing is saved on the server or in your browser, so there is nothing to restore.</p></details>
+        <details><summary>What if my connection drops for a moment?</summary><p>You have about 30 seconds to come back before the chat ends. Messages sent to you in that time are delivered when you return.</p></details>
+        <details><summary>Is it end-to-end encrypted?</summary><p>No. Messages are encrypted in transit with HTTPS and deleted from the relay on delivery, but the relay is able to read them while it holds them.</p></details>
+      </div>
+    </section>
+
+    <section class="final">
+      <h2>Start a chat. No sign-up, just an ID.</h2>
+      <a class="btn btn-dark" href="/chat/">Open PrivateChat</a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>PrivateChat</span>
+    <a href="/chat/">Open chat</a>
+  </footer>
+
+  <script src="/landing.js"></script>
 </body>
 </html>

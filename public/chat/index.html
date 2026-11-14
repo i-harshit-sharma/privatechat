@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>PrivateChat</title>
+  <link rel="stylesheet" href="/chat/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <header class="brand">
+        <h1><a href="/">PrivateChat</a></h1>
+        <span id="status" class="status">Connecting…</span>
+      </header>
+
+      <section class="me">
+        <span class="label">Your ID</span>
+        <div class="id-row">
+          <code id="my-id">····-····</code>
+          <button id="copy" type="button" class="ghost" disabled>Copy</button>
+        </div>
+        <p class="hint">Share this ID with someone. It changes every time you open or refresh this page.</p>
+      </section>
+
+      <section>
+        <label class="label" for="name-input">Your name</label>
+        <input id="name-input" maxlength="24" placeholder="Required to start a chat" autocomplete="off" spellcheck="false">
+        <p class="hint">Shown to people you chat with. Remembered in this browser only.</p>
+      </section>
+
+      <form id="connect-form" class="connect">
+        <label class="label" for="peer-input">Connect to an ID</label>
+        <div class="id-row">
+          <input id="peer-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <button type="submit">Connect</button>
+        </div>
+        <p id="notice" class="notice" role="status"></p>
+      </form>
+
+      <ul id="peer-list" class="peers"></ul>
+    </aside>
+
+    <main class="chat">
+      <div id="empty" class="empty">
+        <p>No chat open.</p>
+        <p class="hint">Both people must have this page open. Nothing is saved: messages exist only in your two browsers and vanish when the tab closes.</p>
+      </div>
+
+      <section id="conv" class="conv" hidden>
+        <header class="conv-head">
+          <button id="back" type="button" class="ghost back" aria-label="Back to chats">←</button>
+          <div class="conv-title">
+            <span><strong id="conv-name"></strong> <code id="conv-id"></code></span>
+            <span id="conv-status" class="status"></span>
+          </div>
+          <button id="leave" type="button" class="ghost danger">Leave</button>
+        </header>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="composer" class="composer">
+          <input id="file-input" type="file" hidden>
+          <button id="attach" type="button" class="ghost" aria-label="Send a file (max 3 MB)" title="Send a file (max 3 MB)">+</button>
+          <button id="emoji-btn" type="button" class="ghost" aria-label="Add emoji" title="Add emoji" aria-expanded="false" aria-controls="emoji-panel">☺</button>
+          <div id="emoji-panel" class="emoji-panel" role="group" aria-label="Emojis" hidden></div>
+          <textarea id="text" rows="1" maxlength="4000" placeholder="Message"></textarea>
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="viewer" class="viewer" aria-label="Image preview">
+    <img id="viewer-img" alt="">
+    <div class="viewer-bar">
+      <span id="viewer-name"></span>
+      <a id="viewer-dl" class="button">Download</a>
+      <button id="viewer-close" type="button" class="ghost">Close</button>
+    </div>
+  </dialog>
+
+  <script src="/chat/app.js"></script>
+</body>
+</html>
