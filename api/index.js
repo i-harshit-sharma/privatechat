@@ -42,7 +42,7 @@ app.disable('x-powered-by');
 app.use('/api', (req, res, next) => {
   res.set('Cache-Control', 'no-store');
   if (process.env.VERCEL && store.kind !== 'redis') {
-    return res.status(503).json({ error: 'Redis is not configured for this deployment.' });
+    return res.status(503).json({ error: 'PR_REDIS_URL is not set for this deployment.' });
   }
   next();
 });
