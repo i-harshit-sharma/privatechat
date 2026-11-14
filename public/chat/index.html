@@ -9,10 +9,40 @@
   <link rel="stylesheet" href="/chat/style.css">
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="s-tag" viewBox="0 0 48 48">
+        <path d="M20 8h18a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H20L6 24z" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M20 8h18a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H20L6 24z" fill="#ffb454" stroke="#1b1b1b" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="16.500" cy="24" r="3" fill="#fff" stroke="#1b1b1b" stroke-width="2.2"/>
+        <path d="M25 18.500h11M25 24h11M25 29.500h7" stroke="#1b1b1b" stroke-width="2.4" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="s-chat" viewBox="0 0 48 48">
+        <g fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
+          <path d="M19 5h19a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6h-1v6l-7-6H19a6 6 0 0 1-6-6V11a6 6 0 0 1 6-6z"/>
+          <path d="M10 20h16a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H17l-7 5v-5a5 5 0 0 1-5-5v-9a5 5 0 0 1 5-5z"/>
+        </g>
+        <path d="M19 5h19a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6h-1v6l-7-6H19a6 6 0 0 1-6-6V11a6 6 0 0 1 6-6z" fill="#b7a6ff" stroke="#1b1b1b" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M10 20h16a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H17l-7 5v-5a5 5 0 0 1-5-5v-9a5 5 0 0 1 5-5z" fill="#fff" stroke="#1b1b1b" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="12" cy="29.500" r="1.900" fill="#1b1b1b"/><circle cx="18" cy="29.500" r="1.900" fill="#1b1b1b"/><circle cx="24" cy="29.500" r="1.900" fill="#1b1b1b"/>
+      </symbol>
+      <symbol id="s-check" viewBox="0 0 48 48">
+        <rect x="6" y="6" width="36" height="36" rx="11" fill="#fff" stroke="#fff" stroke-width="8"/>
+        <rect x="6" y="6" width="36" height="36" rx="11" fill="#6fdc9b" stroke="#1b1b1b" stroke-width="2.4"/>
+        <path d="M15.500 24.500l6 6 11.500-13" fill="none" stroke="#1b1b1b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="s-ghost" viewBox="0 0 48 48">
+        <path d="M24 5C15 5 9 11.500 9 20.500V42l5-4 5 4 5-4 5 4 5-4 5 4V20.500C39 11.500 33 5 24 5z" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M24 5C15 5 9 11.500 9 20.500V42l5-4 5 4 5-4 5 4 5-4 5 4V20.500C39 11.500 33 5 24 5z" fill="#ffb8d2" stroke="#1b1b1b" stroke-width="2.4" stroke-linejoin="round"/>
+        <ellipse cx="19" cy="20" rx="2.300" ry="3.200" fill="#1b1b1b"/><ellipse cx="29" cy="20" rx="2.300" ry="3.200" fill="#1b1b1b"/>
+        <path d="M20.500 28q3.500 3 7 0" fill="none" stroke="#1b1b1b" stroke-width="2.200" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
   <div class="app">
     <aside class="side">
       <header class="brand">
-        <h1><a href="/">PrivateChat</a></h1>
+        <h1><a href="/"><svg viewBox="0 0 48 48" width="24" height="24" aria-hidden="true"><use href="#s-chat"/></svg>PrivateChat</a></h1>
         <span id="status" class="status">Connecting…</span>
       </header>
 
@@ -45,6 +75,11 @@
 
     <main class="chat">
       <div id="empty" class="empty">
+        <div class="stickers" aria-hidden="true">
+          <svg class="stk" style="--r:-8deg"><use href="#s-tag"/></svg>
+          <svg class="stk" style="--r:4deg"><use href="#s-chat"/></svg>
+          <svg class="stk" style="--r:9deg"><use href="#s-ghost"/></svg>
+        </div>
         <p>No chat open.</p>
         <p class="hint">Both people must have this page open. Nothing is saved: messages exist only in your two browsers and vanish when the tab closes.</p>
       </div>
@@ -52,6 +87,7 @@
       <section id="conv" class="conv" hidden>
         <header class="conv-head">
           <button id="back" type="button" class="ghost back" aria-label="Back to chats">←</button>
+          <span id="conv-av" class="avatar"></span>
           <div class="conv-title">
             <span><strong id="conv-name"></strong> <code id="conv-id"></code></span>
             <span id="conv-status" class="status"></span>

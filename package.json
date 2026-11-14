@@ -1,16 +1,20 @@
 {
   "name": "privatechat",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Anonymous 1-to-1 chat relayed by HTTP polling. Nothing is kept after delivery.",
   "scripts": {
-    "start": "node server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.18"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "ioredis": "^6.0.0"
+    "ioredis": "^6.0.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

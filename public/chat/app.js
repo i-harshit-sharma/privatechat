@@ -36,6 +36,7 @@
     Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
   const newMid = () => randomSecret().slice(0, 12);
   const fmt = (id) => `${id.slice(0, 4)}-${id.slice(4)}`;
+  const tint = (id) => `var(--p${(id.charCodeAt(0) + id.charCodeAt(3)) % 4})`;
   const norm = (s) => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const clock = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const fmtSize = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -89,6 +90,10 @@
       li.dataset.id = p.id;
       if (open) li.tabIndex = 0;
 
+      const av = el('span', 'avatar', (p.name || '?').charAt(0).toUpperCase());
+      av.style.background = tint(p.id);
+      li.append(av);
+
       const main = el('div', 'peer-main');
       if (p.name) main.append(el('strong', '', p.name));
       main.append(el('code', '', fmt(p.id)), el('span', `status ${peerStatusClass(p)}`, peerStatus(p)));
@@ -123,6 +128,8 @@
       return;
     }
     $('conv-name').textContent = p.name;
+    $('conv-av').textContent = (p.name || '?').charAt(0).toUpperCase();
+    $('conv-av').style.background = tint(p.id);
     $('conv-id').textContent = fmt(p.id);
     $('conv-status').textContent = peerStatus(p);
     $('conv-status').className = `status ${peerStatusClass(p)}`;
@@ -472,6 +479,12 @@
   }
 
   // ---------- events ----------
+
+  // Type XXXX and the dash appears by itself
+  $('peer-input').addEventListener('input', (e) => {
+    const v = norm(e.target.value).slice(0, 8);
+    e.target.value = v.length > 4 || (v.length === 4 && e.inputType !== 'deleteContentBackward') ? fmt(v) : v;
+  });
 
   $('connect-form').addEventListener('submit', (e) => {
     e.preventDefault();
