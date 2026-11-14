@@ -13,6 +13,7 @@ const PAIR_TTL = 86400;
 const FILE_TTL = 60; // undelivered files expire
 const MAX_FILE = 3 * 1024 * 1024;
 const MAX_TEXT = 4000;
+const MAX_NAME = 24;
 const MAX_PEERS = 20;
 
 const ID_RE = /^[A-HJKMNP-Z2-9]{8}$/;
@@ -88,6 +89,11 @@ app.post('/api/send', wrap(async (req, res) => {
   if (!validCreds(id, secret) || !ID_RE.test(to || '') || to === id) {
     return res.status(400).json({ error: 'bad request' });
   }
+  // Display name, required when asking for or accepting a chat.
+  const rawName = req.body.name;
+  const name =
+    typeof rawName === 'string' ? rawName.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_NAME) : '';
+  if ((type === 'request' || type === 'accept') && !name) return res.status(400).json({ error: 'name required' });
   const [me, them] = await store.mget([userKey(id), userKey(to)]);
   if (!owns(me, secret)) return res.status(401).json({ error: 'expired' });
   if (!them) return res.status(404).json({ error: 'offline' });
@@ -111,7 +117,10 @@ app.post('/api/send', wrap(async (req, res) => {
     return res.status(400).json({ error: 'bad request' });
   }
 
-  await push(to, type === 'msg' ? { type, from: id, text } : { type, from: id });
+  const event = { type, from: id };
+  if (type === 'msg') event.text = text;
+  if (type === 'request' || type === 'accept') event.name = name;
+  await push(to, event);
   res.json({ ok: true });
 }));
 

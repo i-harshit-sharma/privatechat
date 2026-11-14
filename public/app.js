@@ -80,6 +80,7 @@
       if (open) li.tabIndex = 0;
 
       const main = el('div', 'peer-main');
+      if (p.name) main.append(el('strong', '', p.name));
       main.append(el('code', '', fmt(p.id)), el('span', `status ${peerStatusClass(p)}`, peerStatus(p)));
       li.append(main);
       if (p.unread) li.append(el('span', 'badge', String(p.unread)));
@@ -111,6 +112,7 @@
       document.body.classList.remove('show-chat');
       return;
     }
+    $('conv-name').textContent = p.name;
     $('conv-id').textContent = fmt(p.id);
     $('conv-status').textContent = peerStatus(p);
     $('conv-status').className = `status ${peerStatusClass(p)}`;
@@ -132,6 +134,8 @@
           const img = el('img');
           img.src = m.url;
           img.alt = m.name;
+          img.title = 'Click to view full size';
+          img.tabIndex = 0;
           div.append(img);
         }
         const a = el('a', '', `${m.name} (${fmtSize(m.size)})`);
@@ -185,9 +189,22 @@
     sys(p, text);
   }
 
+  // My display name, kept in this browser only. Required to start or accept a chat.
+  const cleanName = (s) => String(s || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24);
+  function myName() {
+    const name = cleanName($('name-input').value);
+    if (!name) {
+      notice('Enter your name first.');
+      $('name-input').focus();
+    }
+    return name;
+  }
+
   async function connect(raw) {
     const id = norm(raw);
     notice('');
+    const name = myName();
+    if (!name) return;
     if (!ID_RE.test(id)) return notice('Enter a valid 8-character ID.');
     if (id === me.id) return notice('That is your own ID.');
     const existing = peers.get(id);
@@ -195,16 +212,19 @@
     if (existing && existing.state === 'incoming') return accept(id);
     if (existing && existing.state === 'outgoing') return notice('Already waiting for them to accept.');
 
-    const r = await send(id, 'request');
+    const r = await send(id, 'request', { name });
     if (r.status === 404) return notice('That ID is not online right now.');
     if (!r.ok) return notice('Could not send the request. Try again.');
-    peers.set(id, { id, state: 'outgoing', messages: [], unread: 0, away: false });
+    peers.set(id, { id, name: '', state: 'outgoing', messages: [], unread: 0, away: false });
     $('peer-input').value = '';
     render();
   }
 
   async function accept(id) {
-    const r = await send(id, 'accept');
+    notice('');
+    const name = myName();
+    if (!name) return;
+    const r = await send(id, 'accept', { name });
     const p = peers.get(id);
     if (!p) return;
     if (!r.ok) {
@@ -290,13 +310,21 @@
     switch (ev.type) {
       case 'request':
         if (p && p.state === 'active') break;
-        peers.set(ev.from, { id: ev.from, state: 'incoming', messages: [], unread: 0, away: false });
+        peers.set(ev.from, {
+          id: ev.from,
+          name: cleanName(ev.name),
+          state: 'incoming',
+          messages: [],
+          unread: 0,
+          away: false,
+        });
         if (selected === ev.from) selected = null;
         render();
         break;
       case 'accept':
         if (p && p.state === 'outgoing') {
           p.state = 'active';
+          p.name = cleanName(ev.name);
           sys(p, 'Connected');
           if (!selected) select(p.id);
         }
@@ -433,6 +461,36 @@
   $('file-input').addEventListener('change', () => {
     sendFile($('file-input').files[0]);
     $('file-input').value = '';
+  });
+
+  // Name: pre-fill from this browser, save as it is typed.
+  try {
+    $('name-input').value = cleanName(localStorage.getItem('pc-name'));
+  } catch {}
+  $('name-input').addEventListener('input', () => {
+    try {
+      localStorage.setItem('pc-name', cleanName($('name-input').value));
+    } catch {}
+  });
+
+  // Full-size image viewer.
+  function openViewer(img) {
+    $('viewer-img').src = img.src;
+    $('viewer-img').alt = img.alt;
+    $('viewer-name').textContent = img.alt;
+    $('viewer-dl').href = img.src;
+    $('viewer-dl').download = img.alt;
+    $('viewer').showModal();
+  }
+  $('messages').addEventListener('click', (e) => {
+    if (e.target.matches('.msg img')) openViewer(e.target);
+  });
+  $('messages').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('.msg img')) openViewer(e.target);
+  });
+  $('viewer-close').addEventListener('click', () => $('viewer').close());
+  $('viewer').addEventListener('click', (e) => {
+    if (e.target === $('viewer')) $('viewer').close(); // click on the backdrop
   });
 
   $('leave').addEventListener('click', () => leave(selected));
