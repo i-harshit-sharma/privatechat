@@ -185,7 +185,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--text); }
 
 /* Conversation */
 .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
-.chat:has(.empty:not([hidden])) { background: var(--p0); }
+.chat:has(.empty) { background: var(--p0); }
 .empty { margin: auto; max-width: 380px; padding: 24px; text-align: center; }
 .empty p:nth-of-type(1) { margin: 0; font-size: 28px; line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; }
 
@@ -302,8 +302,8 @@ a.button {
 @media (max-width: 720px) {
   .side { width: 100%; border-right: 0; }
   .chat { display: none; }
-  body.show-chat .side { display: none; }
-  body.show-chat .chat { display: flex; }
+  .app.show-chat .side { display: none; }
+  .app.show-chat .chat { display: flex; }
   .back { display: inline-block; }
 }
 
